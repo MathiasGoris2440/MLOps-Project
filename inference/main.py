@@ -9,6 +9,11 @@ from .schemas import SmurfFeatures
 # Set up the FastAPI app
 app = FastAPI()
 
+app = FastAPI(
+    docs_url="/api/docs",         # Specifies the path for the Swagger UI
+    openapi_url="/api/openapi.json" # Specifies the path for the OpenAPI schema
+)
+
 # CORS to allow any frontend to connect
 app.add_middleware(
     CORSMiddleware,
