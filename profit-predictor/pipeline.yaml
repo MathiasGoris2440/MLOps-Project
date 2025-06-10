@@ -1,0 +1,38 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+name: smurf-regression-pipeline-v10
+display_name: Train and Register Smurf Regressor
+experiment_name: drunk-smurfs
+
+inputs:
+  cleaned_data:
+    type: uri_file
+    path: azureml:cleaned_dataset:1  # Replace with your actual version
+
+outputs:
+  model_output:
+    mode: upload
+  registration_info:
+    mode: upload
+
+settings:
+  default_compute: azureml:cc-profit-train
+
+jobs:
+  train_model:
+    type: command
+    component: train_regressor.yaml
+    inputs:
+      data: ${{parent.inputs.cleaned_data}}
+    outputs:
+      model_output: ${{parent.outputs.model_output}}
+
+  register_model:
+    type: command
+    component: azureml://registries/azureml/components/register_model/versions/0.0.9
+    inputs:
+      model_name: smurf-regressor
+      model_type: custom_model
+      model_path: ${{parent.jobs.train_model.outputs.model_output}}
+    outputs:
+      registration_details_folder: ${{parent.outputs.registration_info}}

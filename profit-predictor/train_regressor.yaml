@@ -1,0 +1,21 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: train-smurf-regressor
+display_name: Train Smurf Regressor
+version: 1
+type: command
+
+inputs:
+  data:
+    type: uri_file
+
+outputs:
+  model_output:
+    type: uri_folder
+    mode: rw_mount
+
+code: ./code
+environment: azureml:aml-Smurf-Train@latest 
+command: >-
+  python train.py
+  --data ${{inputs.data}}
+  --model_output ${{outputs.model_output}}
