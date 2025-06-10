@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: smurf-ingress
+  namespace: smurf-project # Ensure this matches your namespace
+  annotations:
+    # This annotation tells Traefik (the default k3d Ingress controller)
+    # to rewrite the path for the API service.
+    # For the frontend, it's not needed if location / handles it.
+    # This is for Traefik, if you were using nginx-ingress-controller,
+    # you might use: nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # For now, let's keep it simple for Traefik.
+    # If using nginx-ingress-controller, you might need specific annotations
+    # for /api/predict to work with rewrite-target.
+    # For Traefik, this might be simpler:
+    # traefik.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      # Rule for the FastAPI backend API
+      - path: /api           # All paths starting with /api
+        pathType: Prefix
+        backend:
+          service:
+            name: smurf-fastapi-service # Your existing FastAPI Service
+            port:
+              number: 80 # The port your FastAPI service exposes (not the container port)
+      # Rule for the Frontend (static files served by NGINX)
+      - path: /              # Catch-all for all other paths
+        pathType: Prefix
+        backend:
+          service:
+            name: smurf-frontend-service # Your new Frontend Service
+            port:
+              number: 80 # The port your NGINX frontend service exposes

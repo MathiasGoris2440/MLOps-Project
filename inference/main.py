@@ -25,7 +25,7 @@ with open(model_path, "rb") as f:
     model = pickle.load(f)
 
 # 🤖 Definieer de API endpoint
-@app.post("/predict")
+@app.post("/api/predict")
 def predict(features: SmurfFeatures):
     input_data = np.array([[
         features.income_am,

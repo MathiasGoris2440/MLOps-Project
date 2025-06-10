@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: smurf-frontend-service
+  namespace: smurf-project # Ensure this matches your namespace
+spec:
+  type: ClusterIP # Internal to the cluster, exposed via Ingress
+  selector:
+    app: smurf-frontend # Matches the deployment labels
+  ports:
+    - protocol: TCP
+      port: 80        # Service listens on port 80
+      targetPort: 80  # Forwards to NGINX container's port 80

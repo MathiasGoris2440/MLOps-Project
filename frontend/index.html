@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drunk Smurf Predictor</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-4xl w-full overflow-y-auto max-h-[90vh]">
+        <h1 class="text-4xl font-bold text-center text-purple-700 mb-8">Drunk Smurf Predictor 🍄</h1>
+
+        <form id="predictionForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="input-fields-container">
+                <!-- Input fields will be dynamically inserted here by script.js -->
+            </div>
+
+            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105">
+                Predict Smurf Behavior
+            </button>
+        </form>
+
+        <div id="result" class="mt-8 p-4 bg-purple-100 border border-purple-300 text-purple-800 rounded-lg hidden">
+            <h2 class="text-lg font-semibold mb-2">Prediction Result:</h2>
+            <p id="predictedValue" class="text-xl font-bold"></p>
+        </div>
+
+        <div id="messageBox" class="mt-8 p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg hidden">
+            <h2 class="text-lg font-semibold mb-2">Error:</h2>
+            <p id="errorMessage" class="text-base"></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

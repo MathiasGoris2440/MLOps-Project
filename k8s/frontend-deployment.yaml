@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smurf-frontend
+  namespace: smurf-project # Ensure this matches your namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smurf-frontend
+  template:
+    metadata:
+      labels:
+        app: smurf-frontend
+    spec:
+      containers:
+      - name: smurf-frontend-nginx
+        # This image name will be dutchg/smurf-frontend:latest after you build and push it
+        image: dutchg/smurf-frontend:latest # Placeholder - YOU WILL BUILD AND PUSH THIS
+        ports:
+        - containerPort: 80 # NGINX listens on port 80

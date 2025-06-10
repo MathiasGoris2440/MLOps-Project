@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smurf-fastapi
+  namespace: smurf-project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smurf-fastapi
+  template:
+    metadata:
+      labels:
+        app: smurf-fastapi
+    spec:
+      containers:
+      - name: smurf-fastapi
+        image: dutchg/smurf-fastapi:latest
+        ports:
+        - containerPort: 8000
