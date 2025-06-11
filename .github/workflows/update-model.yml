@@ -1,0 +1,53 @@
+name: Update Model and Restart Docker
+
+on:
+  workflow_dispatch:   # Manual trigger
+
+jobs:
+  update-model-and-docker:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Azure CLI and ML extension
+        run: |
+          pip install azure-cli
+          az extension add -n ml -y
+
+      - name: Azure login
+        run: |
+          az login --service-principal `
+            --username $env:AZURE_CLIENT_ID `
+            --password $env:AZURE_CLIENT_SECRET `
+            --tenant $env:AZURE_TENANT_ID
+          az account set --subscription $env:AZURE_SUBSCRIPTION_ID
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Remove old model folder
+        run: |
+          if (Test-Path "inference/smurf-regressor") {
+            Remove-Item -Recurse -Force "inference/smurf-regressor"
+          }
+
+      - name: Download latest smurf-regressor model
+        run: |
+          az ml model download `
+            --name smurf-regressor `
+            --version latest `
+            --download-path ./inference/smurf-regressor
+
+      - name: Build Docker image
+        run: docker build -t smurf-fastapi .
+
+      - name: Stop and remove existing Docker container
+        run: |
+          docker stop smurf-fastapi || true
+          docker rm smurf-fastapi || true
+
+      - name: Run Docker container
+        run: docker run -d --name smurf-fastapi -p 8000:8000 smurf-fastapi
