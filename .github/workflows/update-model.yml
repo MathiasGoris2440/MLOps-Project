@@ -39,8 +39,8 @@ jobs:
         run: |
           $version = az ml model list `
             --name smurf-regressor `
-            --workspace-name $env:AZURE_WORKSPACE_NAME `
-            --resource-group $env:AZURE_RESOURCE_GROUP `
+            --workspace-name "$env:AZURE_WORKSPACE_NAME" `
+            --resource-group "$env:AZURE_RESOURCE_GROUP" `
             --query "[].version | sort(@)[-1]" `
             -o tsv
           echo "LATEST_VERSION=$version" >> $env:GITHUB_ENV
