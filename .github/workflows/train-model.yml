@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -66,9 +66,3 @@ jobs:
             --download-path model_output `
             --output-dir inference `
             --overwrite
-
-      - name: Upload model as artifact (optional)
-        uses: actions/upload-artifact@v3
-        with:
-          name: trained-model
-          path: inference/smurf-regressor
