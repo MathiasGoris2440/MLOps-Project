@@ -54,10 +54,5 @@ jobs:
       - name: Build Docker image
         run: docker build -t smurf-fastapi .
 
-      - name: Stop and remove existing Docker container
-        run: |
-          docker stop smurf-fastapi || true
-          docker rm smurf-fastapi || true
-
       - name: Run Docker container
         run: docker run -d --name smurf-fastapi -p 8000:8000 smurf-fastapi
