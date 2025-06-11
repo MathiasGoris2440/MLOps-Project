@@ -2,8 +2,6 @@ name: Redeploy Frontend and API on Config/Code Change
 
 on:
   push:
-    branches:
-      - main # Or your main development branch
     paths:
       - 'frontend/**'         # Trigger on any changes in the frontend directory
       - 'k8s/**'              # Trigger on any changes in Kubernetes config files
