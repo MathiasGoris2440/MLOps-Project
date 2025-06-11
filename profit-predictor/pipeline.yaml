@@ -1,6 +1,6 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
 type: pipeline
-name: smurf-regression-pipeline-v10
+name: smurf-regression-pipeline-v11
 display_name: Train and Register Smurf Regressor
 experiment_name: drunk-smurfs
 
