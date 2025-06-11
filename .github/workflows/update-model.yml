@@ -100,6 +100,7 @@ jobs:
           echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
           # Verify kubectl can connect
           kubectl cluster-info
+          kubectl create namespace smurf-project
 
       - name: Trigger Kubernetes Deployment Rollout Restart
         # This command forces the 'smurf-fastapi' deployment to restart its pods.
