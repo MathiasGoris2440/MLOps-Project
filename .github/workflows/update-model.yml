@@ -2,12 +2,7 @@ name: Update Model and Redeploy FastAPI on Kubernetes
 
 on:
   workflow_dispatch:  # Manual trigger for testing
-  # You could also trigger this on push to a specific branch or path if needed:
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'inference/smurf-regressor/INPUT_model_path/**' # Or whatever path indicates model changes
+ 
 
 jobs:
   update-model-and-redeploy:
