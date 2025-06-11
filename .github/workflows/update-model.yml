@@ -34,12 +34,24 @@ jobs:
             Remove-Item -Recurse -Force "inference/smurf-regressor"
           }
 
-      - name: Download latest smurf-regressor model
+      - name: Get latest model version
+        id: get_model_version
+        run: |
+          $version = az ml model list `
+            --name smurf-regressor `
+            --workspace-name $env:AZURE_WORKSPACE_NAME `
+            --resource-group $env:AZURE_RESOURCE_GROUP `
+            --query "[].version | sort(@)[-1]" `
+            -o tsv
+          echo "LATEST_VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Download latest model
         run: |
           az ml model download `
             --name smurf-regressor `
-            --version latest `
-            --download-path ./inference/smurf-regressor
+            --version $env:LATEST_VERSION `
+            --download-path ./inference
+
 
       - name: Build Docker image
         run: docker build -t smurf-fastapi .
