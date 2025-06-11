@@ -66,9 +66,3 @@ jobs:
             --download-path model_output `
             --output-dir inference `
             --overwrite
-
-      - name: Upload model as artifact (optional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: trained-model
-          path: inference/smurf-regressor
