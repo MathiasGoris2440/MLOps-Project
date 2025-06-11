@@ -18,3 +18,5 @@ spec:
         image: dutchg/smurf-fastapi:latest
         ports:
         - containerPort: 8000
+      nodeSelector: # <--- NEW SECTION
+        node-type: backend-node # <--- Schedule this pod on a node labeled backend-node

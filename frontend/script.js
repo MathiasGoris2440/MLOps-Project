@@ -7,85 +7,92 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitButton = predictionForm.querySelector('button[type="submit"]');
     const inputFieldsContainer = document.getElementById('input-fields-container');
 
-    // Define all 44 fields from SmurfFeatures schema with their types
+    // Define all 44 fields from SmurfFeatures schema with their types and user-friendly labels
     const smurfFeaturesSchema = {
-        income_am: 'float',
-        profit_last_am: 'float',
-        profit_am: 'float',
-        damage_am: 'float',
-        damage_inc: 'float', // Note: damage_inc is float in schema, but often 0/1. Keep as float.
-        crd_lim_rec: 'float',
-        credit_use_ic: 'bool',
-        gluten_ic: 'bool',
-        lactose_ic: 'bool',
-        insurance_ic: 'bool',
-        spa_ic: 'bool',
-        empl_ic: 'bool',
-        cab_requests: 'float',
-        married_cd: 'bool',
-        bar_no: 'float',
-        sport_ic: 'bool',
-        neighbor_income: 'float',
-        age: 'float',
-        marketing_permit: 'bool',
-        urban_ic: 'bool',
-        client_segment: 'float',
-        sect_empl: 'float',
-        prev_stay: 'bool',
-        prev_all_in_stay: 'bool',
-        divorce: 'bool',
-        fam_adult_size: 'float',
-        children_no: 'float',
-        tenure_mts: 'float',
-        company_ic: 'bool',
-        claims_no: 'float',
-        claims_am: 'float',
-        nights_booked: 'float',
-        shop_am: 'float',
-        shop_use: 'bool',
-        retired: 'bool',
-        gold_status: 'bool',
-        gender_M: 'bool',
-        gender_V: 'bool',
-        score_pos: 'float',
-        score_neg: 'float',
-        tenure_started_in_season: 'bool',
-        dining_ic_False: 'bool',
-        dining_ic_True: 'bool',
-        dining_ic_missing: 'bool',
-        presidential_False: 'bool',
-        presidential_True: 'bool',
-        presidential_missing: 'bool',
-        is_return_customer: 'bool'
+        income_am: { type: 'float', label: 'Income Amount' },
+        profit_last_am: { type: 'float', label: 'Profit Last Amount' },
+        profit_am: { type: 'float', label: 'Profit Amount' },
+        damage_am: { type: 'float', label: 'Damage Amount' },
+        damage_inc: { type: 'bool', label: 'Damage Incident (0=No, 1=Yes)' },
+        crd_lim_rec: { type: 'float', label: 'Credit Limit Recommended' },
+        credit_use_ic: { type: 'bool', label: 'Credit Usage (0=No, 1=Yes)' },
+        gluten_ic: { type: 'bool', label: 'Gluten Allergy (0=No, 1=Yes)' },
+        lactose_ic: { type: 'bool', label: 'Lactose Intolerance (0=No, 1=Yes)' },
+        insurance_ic: { type: 'bool', label: 'Insurance (0=No, 1=Yes)' },
+        spa_ic: { type: 'bool', label: 'Spa Use (0=No, 1=Yes)' },
+        empl_ic: { type: 'bool', label: 'Employed (0=No, 1=Yes)' },
+        cab_requests: { type: 'float', label: 'Cab Requests' },
+        married_cd: { type: 'bool', label: 'Married (0=No, 1=Yes)' },
+        bar_no: { type: 'float', label: 'Bar Visits' },
+        sport_ic: { type: 'bool', label: 'Sports Activity (0=No, 1=Yes)' },
+        neighbor_income: { type: 'float', label: 'Neighbor Income' },
+        age: { type: 'float', label: 'Age' },
+        marketing_permit: { type: 'bool', label: 'Marketing Permit (0=No, 1=Yes)' },
+        urban_ic: { type: 'bool', label: 'Urban Resident (0=No, 1=Yes)' },
+        client_segment: { type: 'float', label: 'Client Segment' },
+        sect_empl: { type: 'float', label: 'Sector of Employment' },
+        prev_stay: { type: 'bool', label: 'Previous Stay (0=No, 1=Yes)' },
+        prev_all_in_stay: { type: 'bool', label: 'Previous All-Inclusive Stay (0=No, 1=Yes)' },
+        divorce: { type: 'bool', label: 'Divorced (0=No, 1=Yes)' },
+        fam_adult_size: { type: 'float', label: 'Family Adult Size' },
+        children_no: { type: 'float', label: 'Number of Children' },
+        tenure_mts: { type: 'float', label: 'Tenure in Months' },
+        company_ic: { type: 'bool', label: 'Company Client (0=No, 1=Yes)' },
+        claims_no: { type: 'float', label: 'Number of Claims' },
+        claims_am: { type: 'float', label: 'Claims Amount' },
+        nights_booked: { type: 'float', label: 'Nights Booked' },
+        shop_am: { type: 'float', label: 'Shopping Amount' },
+        shop_use: { type: 'bool', label: 'Shop Use (0=No, 1=Yes)' },
+        retired: { type: 'bool', label: 'Retired (0=No, 1=Yes)' },
+        gold_status: { type: 'bool', label: 'Gold Status (0=No, 1=Yes)' },
+        gender_M: { type: 'bool', label: 'Gender: Male (0=No, 1=Yes)' },
+        gender_V: { type: 'bool', label: 'Gender: Other (0=No, 1=Yes)' }, // Assuming 'V' is for 'Various' or similar non-binary
+        score_pos: { type: 'float', label: 'Positive Score' },
+        score_neg: { type: 'float', label: 'Negative Score' },
+        tenure_started_in_season: { type: 'bool', label: 'Tenure Started in Season (0=No, 1=Yes)' },
+        dining_ic_False: { type: 'bool', label: 'Dining: Not Indicated (0=No, 1=Yes)' }, // Assuming these are one-hot encoded
+        dining_ic_True: { type: 'bool', label: 'Dining: Indicated (0=No, 1=Yes)' },
+        dining_ic_missing: { type: 'bool', label: 'Dining: Missing Data (0=No, 1=Yes)' },
+        presidential_False: { type: 'bool', label: 'Presidential: Not Indicated (0=No, 1=Yes)' },
+        presidential_True: { type: 'bool', label: 'Presidential: Indicated (0=No, 1=Yes)' },
+        presidential_missing: { type: 'bool', label: 'Presidential: Missing Data (0=No, 1=Yes)' },
+        is_return_customer: { type: 'bool', label: 'Is Return Customer (0=No, 1=Yes)' }
     };
 
     // Function to generate input fields
     function generateInputFields() {
         let htmlInputs = '';
-        for (const field in smurfFeaturesSchema) {
-            if (smurfFeaturesSchema.hasOwnProperty(field)) {
-                const type = smurfFeaturesSchema[field];
-                const labelText = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); // Nicer label
+        for (const fieldKey in smurfFeaturesSchema) {
+            if (smurfFeaturesSchema.hasOwnProperty(fieldKey)) {
+                const fieldDef = smurfFeaturesSchema[fieldKey];
+                const type = fieldDef.type;
+                const labelText = fieldDef.label;
 
                 let inputType = 'text';
                 let step = '';
                 let min = '';
                 let max = '';
+                let placeholder = '';
 
                 if (type === 'float') {
                     inputType = 'number';
                     step = '0.01'; // Default step for floats
+                    placeholder = 'e.g., 123.45';
                 } else if (type === 'bool') {
                     inputType = 'number'; // Use number input for 0/1 for booleans
                     step = '1';
                     min = '0';
                     max = '1';
+                    placeholder = '0 or 1';
                 }
 
                 htmlInputs += `
                     <div>
-                        <label for="${field}" class="block text-sm font-medium text-gray-700 mb-1">${labelText}</label>
-                        <input type="${inputType}" step="${step}" id="${field}" name="${field}" ${min ? `min="${min}"` : ''} ${max ? `max="${max}"` : ''} required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 transition duration-150 ease-in-out">
+                        <label for="${fieldKey}" class="block text-sm font-medium text-gray-700 mb-1">${labelText}</label>
+                        <input type="${inputType}" step="${step}" id="${fieldKey}" name="${fieldKey}" 
+                               ${min ? `min="${min}"` : ''} ${max ? `max="${max}"` : ''} 
+                               ${placeholder ? `placeholder="${placeholder}"` : ''}
+                               required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 transition duration-150 ease-in-out">
                     </div>
                 `;
             }
@@ -103,34 +110,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = {};
 
         // Parse form data according to schema types
-        for (const field in smurfFeaturesSchema) {
-            if (smurfFeaturesSchema.hasOwnProperty(field)) {
-                const value = formData.get(field);
-                const type = smurfFeaturesSchema[field];
+        for (const fieldKey in smurfFeaturesSchema) {
+            if (smurfFeaturesSchema.hasOwnProperty(fieldKey)) {
+                const value = formData.get(fieldKey);
+                const type = smurfFeaturesSchema[fieldKey].type;
 
                 if (type === 'float') {
-                    data[field] = parseFloat(value);
-                    if (isNaN(data[field])) {
-                        // Handle case where float input might be empty or invalid
-                        showError(`Invalid number for ${field}. Please enter a valid number.`);
-                        return; // Stop processing
+                    data[fieldKey] = parseFloat(value);
+                    if (isNaN(data[fieldKey])) {
+                        showError(`Invalid number for ${smurfFeaturesSchema[fieldKey].label}. Please enter a valid number.`);
+                        return;
                     }
                 } else if (type === 'bool') {
-                    // Convert 0/1 to true/false boolean values for JSON
-                    data[field] = value === '1'; // "1" -> true, "0" -> false
+                    data[fieldKey] = value === '1'; // "1" -> true, "0" -> false
                     if (value !== '0' && value !== '1') {
-                         showError(`Invalid value for ${field}. Please enter 0 or 1.`);
-                         return; // Stop processing
+                         showError(`Invalid value for ${smurfFeaturesSchema[fieldKey].label}. Please enter 0 or 1.`);
+                         return;
                     }
                 } else {
-                    // Default for other types (if any, though schema only has float/bool)
-                    data[field] = value;
+                    data[fieldKey] = value;
                 }
             }
         }
-
-        // Validate all required fields are present and not empty (handled by 'required' attribute in HTML)
-        // Additional validation can be added here if needed (e.g., specific ranges)
 
         submitButton.textContent = 'Predicting...';
         submitButton.disabled = true;

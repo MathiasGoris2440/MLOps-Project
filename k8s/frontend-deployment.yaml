@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: smurf-frontend
-  namespace: smurf-project # Ensure this matches your namespace
+  namespace: smurf-project
 spec:
   replicas: 1
   selector:
@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
       - name: smurf-frontend-nginx
-        # This image name will be dutchg/smurf-frontend:latest after you build and push it
-        image: dutchg/smurf-frontend:latest # Placeholder - YOU WILL BUILD AND PUSH THIS
+        image: dutchg/smurf-frontend:latest
         ports:
-        - containerPort: 80 # NGINX listens on port 80
+        - containerPort: 80
+      nodeSelector: # <--- NEW SECTION
+        node-type: frontend-node # <--- Schedule this pod on a node labeled frontend-node
