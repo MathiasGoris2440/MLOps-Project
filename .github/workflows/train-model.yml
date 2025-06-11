@@ -67,8 +67,7 @@ jobs:
 
       - name: Download new trained model
         run: |
-          az ml job download `
-            --name $env:JOB_ID `
-            --download-path model_output `
-            --output-dir inference `
-            --overwrite
+          az ml model download \
+            --name smurf-regressor \
+            --version latest \
+            --download-path ./inference
