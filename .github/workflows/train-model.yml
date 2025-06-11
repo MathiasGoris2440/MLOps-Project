@@ -67,7 +67,8 @@ jobs:
 
       - name: Download new trained model
         run: |
-          az ml model download \
-            --name smurf-regressor \
-            --version latest \
-            --download-path ./inference
+          az ml model download `
+            --name smurf-regressor `
+            --version latest `
+            --download-path ./inference/smurf-regressor
+
