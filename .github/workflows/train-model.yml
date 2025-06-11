@@ -46,7 +46,18 @@ jobs:
 
       - name: Wait for job to complete
         run: |
-          az ml job wait --name $env:JOB_ID
+          $jobId = $env:JOB_ID
+          do {
+            $status = az ml job show --name $jobId --query status -o tsv
+            Write-Output "Current status: $status"
+            Start-Sleep -Seconds 10
+          } while ($status -eq "Queued" -or $status -eq "NotStarted" -or $status -eq "Running")
+
+          if ($status -ne "Completed") {
+            Write-Error "Job failed with status: $status"
+            exit 1
+          }
+
 
       - name: Remove old model from inference folder
         run: |
