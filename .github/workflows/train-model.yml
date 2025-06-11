@@ -66,9 +66,13 @@ jobs:
           }
 
       - name: Download new trained model
+        shell: pwsh
         run: |
-          az ml model download `
-            --name smurf-regressor `
-            --version latest `
-            --download-path ./inference/smurf-regressor
+          $versionsJson = az ml model list --name smurf-regressor --query "[].version" -o json
+          $versions = ConvertFrom-Json $versionsJson
+
+          $latestVersion = ($versions | Sort-Object -Descending)[0]
+
+          az ml model download --name smurf-regressor --version $latestVersion --download-path ./inference/smurf-regressor
+
 
