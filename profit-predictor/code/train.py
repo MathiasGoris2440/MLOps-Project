@@ -3,9 +3,13 @@ import pandas as pd
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.ensemble import GradientBoostingRegressor
 import pickle
 import os
+from random import Random
+from sklearn.ensemble import GradientBoostingRegressor
+# This time we will need our Tensorflow Keras libraries, as we will be working with the AI training now
+from tensorflow import keras
+from tensorflow.keras.optimizers import SGD
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data", type=str)
@@ -24,7 +28,7 @@ def main():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    params = {
+    params =  {
         'criterion': 'squared_error',
         'learning_rate': 0.32,
         'loss': 'huber',
