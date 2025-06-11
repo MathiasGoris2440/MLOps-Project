@@ -37,7 +37,7 @@ def main():
         'max_leaf_nodes': 120,
         'min_samples_leaf': 11,
         'min_samples_split': 7,
-        'n_estimators': 368
+        'n_estimators': 367
     }
     model = GradientBoostingRegressor(**params, random_state=42)
     model.fit(X_train, y_train)
