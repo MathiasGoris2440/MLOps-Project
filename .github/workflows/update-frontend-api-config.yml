@@ -1,0 +1,114 @@
+name: Redeploy Frontend and API on Config/Code Change
+
+on:
+  push:
+    branches:
+      - main # Or your main development branch
+    paths:
+      - 'frontend/**'         # Trigger on any changes in the frontend directory
+      - 'k8s/**'              # Trigger on any changes in Kubernetes config files
+      - 'inference/**'        # Trigger on changes to FastAPI app code (e.g., main.py, schemas.py)
+      - 'Dockerfile'          # Trigger on changes to the FastAPI Dockerfile
+      - 'frontend.Dockerfile' # Trigger on changes to the Frontend Dockerfile
+  workflow_dispatch: # Allows manual triggering for testing
+
+jobs:
+  redeploy-app-components:
+    runs-on: self-hosted # Assumes this runner has Docker, kubectl, and k3d installed and configured
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --- Kubernetes Cluster Connectivity & Labeling ---
+      # This step ensures kubectl can communicate with your k3d cluster
+      # and that the necessary node labels are applied (idempotently).
+      - name: Setup kubeconfig and ensure node labels
+        run: |
+          # Ensure k3d is in PATH or provide full path if needed
+          k3d kubeconfig get k3s-default > $HOME/.kube/config
+          echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV # Set for subsequent steps
+
+          # Verify kubectl can connect to the existing cluster
+          echo "Verifying kubectl connectivity..."
+          kubectl cluster-info
+
+          # --- Ensure Nodes are Labeled ---
+          # These commands will apply labels if they don't exist, or overwrite if they do.
+          # This makes the labeling step idempotent and robust.
+          echo "Ensuring node labels are applied..."
+          kubectl label node k3d-k3s-default-agent-0 node-type=frontend-node --overwrite
+          kubectl label node k3d-k3s-default-agent-1 node-type=backend-node --overwrite
+
+          # Verify labels were applied (optional, but good for debugging in logs)
+          kubectl get nodes --show-labels
+        shell: powershell
+
+      # --- Docker Build and Push (for both FastAPI and Frontend) ---
+      # We rebuild and push both to keep the workflow simpler,
+      # as `kubectl apply` and `rollout restart` are efficient enough
+      # to only update components that genuinely have new image content.
+      - name: Docker login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Tag FastAPI Docker image
+        run: |
+          docker build -t smurf-fastapi .
+          docker tag smurf-fastapi:latest ${{ secrets.DOCKER_USERNAME }}/smurf-fastapi:latest
+        shell: powershell
+
+      - name: Push FastAPI Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/smurf-fastapi:latest
+        shell: powershell
+
+      - name: Build and Tag Frontend Docker image
+        # Build the smurf-frontend image (assuming frontend.Dockerfile in repo root)
+        run: |
+          docker build -f frontend.Dockerfile -t smurf-frontend .
+          docker tag smurf-frontend:latest ${{ secrets.DOCKER_USERNAME }}/smurf-frontend:latest
+        shell: powershell
+
+      - name: Push Frontend Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/smurf-frontend:latest
+        shell: powershell
+      # --- End Docker Build and Push ---
+
+
+      # --- Kubernetes Deployment Update ---
+      - name: Create Kubernetes Namespace and Apply Manifests
+        run: |
+          # Create namespace if it doesn't exist (idempotent)
+          kubectl create namespace smurf-project --dry-run=client -o yaml | kubectl apply -f -
+
+          # Apply all K8s manifests. This will create or update deployments, services, and ingress.
+          # This is crucial for picking up changes in `k8s/*.yaml` files.
+          echo "Applying Kubernetes manifests..."
+          kubectl apply -f k8s/deployment.yaml -n smurf-project
+          kubectl apply -f k8s/service.yaml -n smurf-project
+          kubectl apply -f k8s/frontend-deployment.yaml -n smurf-project
+          kubectl apply -f k8s/frontend-service.yaml -n smurf-project
+          kubectl apply -f k8s/ingress.yaml -n smurf-project
+        shell: powershell
+
+      - name: Trigger Kubernetes Deployment Rollout Restart for Frontend and FastAPI
+        # Trigger rollouts for both. If images haven't changed, they won't restart.
+        run: |
+          echo "Triggering rollout restart for smurf-frontend..."
+          kubectl rollout restart deployment/smurf-frontend -n smurf-project
+          kubectl rollout status deployment/smurf-frontend -n smurf-project
+
+          echo "Triggering rollout restart for smurf-fastapi..."
+          kubectl rollout restart deployment/smurf-fastapi -n smurf-project
+          kubectl rollout status deployment/smurf-fastapi -n smurf-project
+        shell: powershell
+
+      - name: Verify Pod Status and Placement
+        run: |
+          echo "Waiting for pods to stabilize..."
+          sleep 30 # Give some time for pods to get scheduled and start
+          kubectl get pods -n smurf-project -o wide
+          echo "Check the 'NODE' column to confirm pods are on their designated nodes."
+        shell: powershell
