@@ -61,57 +61,53 @@ jobs:
       # --- End Azure ML Authentication and Model Download ---
 
 
-      # --- Docker Build and Push (New/Modified Steps) ---
+      # --- Docker Build and Push (Existing Steps) ---
       - name: Docker login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          # Important: Ensure DOCKER_USERNAME and DOCKER_PASSWORD are set as GitHub Secrets
-          # Or, if your image is public, you might omit this step, but it's good practice.
 
       - name: Build and Tag Docker image
-        # Build the smurf-fastapi image.
-        # Use a tag that reflects the new model version for better traceability,
-        # but also tag 'latest' so our K8s deployment can easily pick it up.
         run: |
           docker build -t smurf-fastapi .
-          # Use the DOCKER_USERNAME secret for tagging
           docker tag smurf-fastapi:latest ${{ secrets.DOCKER_USERNAME }}/smurf-fastapi:latest
-          # You could also add a version-specific tag, e.g.:
-          # docker tag smurf-fastapi:latest ${{ secrets.DOCKER_USERNAME }}/smurf-fastapi:${{ env.LATEST_VERSION }}
 
       - name: Push Docker image to Docker Hub
-        # Push the 'latest' tag using the DOCKER_USERNAME secret.
-        # Kubernetes will pull this when a rollout is triggered.
         run: docker push ${{ secrets.DOCKER_USERNAME }}/smurf-fastapi:latest
       # --- End Docker Build and Push ---
 
 
-      # --- Kubernetes Deployment Update (New Steps) ---
-      - name: Setup k3d kubeconfig
-        # This step ensures kubectl can communicate with your k3d cluster.
-        # It assumes k3d is installed and running on the self-hosted runner machine.
-        # If the k3d cluster is not running, this might fail.
+      # --- Kubernetes Deployment & Rollout (Modified Steps) ---
+      - name: Setup k3d kubeconfig and Apply K8s Manifests
         run: |
           # Ensure k3d is in PATH or provide full path if needed
           k3d kubeconfig get k3s-default > $HOME/.kube/config
-          # Set KUBECONFIG env var to ensure kubectl uses this file
           echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
+
           # Verify kubectl can connect
           kubectl cluster-info
-          kubectl create namespace smurf-project
 
-      - name: Trigger Kubernetes Deployment Rollout Restart
+          # --- Apply all K8s manifests to ensure deployments exist ---
+          # This should be done every time to ensure the cluster state matches your YAMLs
+          # It's idempotent, meaning it won't create duplicates if they exist,
+          # but it will create them if they don't, or update them if changes are made to the YAMLs.
+          kubectl create namespace smurf-project --dry-run=client -o yaml | kubectl apply -f - # Create if not exists
+          kubectl apply -f k8s/deployment.yaml -n smurf-project
+          kubectl apply -f k8s/service.yaml -n smurf-project
+          kubectl apply -f k8s/frontend-deployment.yaml -n smurf-project
+          kubectl apply -f k8s/frontend-service.yaml -n smurf-project
+          kubectl apply -f k8s/ingress.yaml -n smurf-project
+          # --- End Apply K8s manifests ---
+
+      - name: Trigger Kubernetes Deployment Rollout Restart for FastAPI
+        # Now that we've applied the manifests, the deployment should exist.
         # This command forces the 'smurf-fastapi' deployment to restart its pods.
-        # When new pods are created, they will pull the new 'latest' image from Docker Hub.
         run: |
           kubectl rollout restart deployment/smurf-fastapi -n smurf-project
-          # Optional: Wait for the rollout to complete
           kubectl rollout status deployment/smurf-fastapi -n smurf-project
 
       - name: Verify Pod Status (Optional)
         run: |
-          # Give it a moment, then check pods
           sleep 10
           kubectl get pods -n smurf-project -o wide
