@@ -35,7 +35,7 @@ def main():
         'max_depth': 3,
         'max_features': 'sqrt',
         'max_leaf_nodes': 120,
-        'min_samples_leaf': 12,
+        'min_samples_leaf': 11,
         'min_samples_split': 7,
         'n_estimators': 368
     }

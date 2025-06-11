@@ -6,7 +6,6 @@ on:
       - 'profit-predictor/code/train.py'
       - 'profit-predictor/pipeline.yaml'
       - 'profit-predictor/train_regressor.yaml'
-      - 'profit-predictor/smurf-train-env.yaml'
 
 jobs:
   train-model:
@@ -40,11 +39,6 @@ jobs:
             group=${{ secrets.AZURE_RESOURCE_GROUP }} `
             workspace=${{ secrets.AZURE_WORKSPACE_NAME }}
       
-      - name: Register training environment
-        run: |
-          az ml environment create --file profit-predictor/smurf-train-env.yaml
-
-
       - name: Submit Azure ML pipeline
         run: |
           $jobId = az ml job create --file profit-predictor/pipeline.yaml --query name -o tsv
