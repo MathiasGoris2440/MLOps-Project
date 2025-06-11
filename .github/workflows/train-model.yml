@@ -1,0 +1,74 @@
+name: Retrain AI Model
+
+on:
+  push:
+    paths:
+      - 'profit-predictor/code/train.py'
+      - 'profit-predictor/pipeline.yaml'
+      - 'profit-predictor/train_regressor.yaml'
+
+jobs:
+  train-model:
+    runs-on: [self-hosted, windows]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Azure CLI and ML extension
+        run: |
+          pip install azure-cli
+          az extension add -n ml -y
+
+      - name: Azure login
+        run: |
+          az login --service-principal `
+            --username $env:AZURE_CLIENT_ID `
+            --password $env:AZURE_CLIENT_SECRET `
+            --tenant $env:AZURE_TENANT_ID
+          az account set --subscription $env:AZURE_SUBSCRIPTION_ID
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Configure Azure ML defaults
+        run: |
+          az configure --defaults `
+            group=${{ secrets.AZURE_RESOURCE_GROUP }} `
+            workspace=${{ secrets.AZURE_WORKSPACE_NAME }}
+
+      - name: Submit Azure ML pipeline
+        run: |
+          $jobId = az ml job create --file profit-predictor/pipeline.yaml --query name -o tsv
+          echo "JOB_ID=$jobId" >> $env:GITHUB_ENV
+
+      - name: Wait for job to complete
+        run: |
+          az ml job wait --name $env:JOB_ID
+
+      - name: Remove old model from inference folder
+        run: |
+          if (Test-Path "inference/smurf-regressor") {
+            Remove-Item -Recurse -Force "inference/smurf-regressor"
+          }
+
+      - name: Download new trained model
+        run: |
+          az ml job download `
+            --name $env:JOB_ID `
+            --download-path model_output `
+            --output-dir inference `
+            --overwrite
+
+      - name: Upload model as artifact (optional)
+        uses: actions/upload-artifact@v3
+        with:
+          name: trained-model
+          path: inference/smurf-regressor
