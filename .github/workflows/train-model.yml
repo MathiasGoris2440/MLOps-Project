@@ -3,13 +3,11 @@ name: Retrain AI Model
 on:
   push:
     paths:
-      - 'profit-predictor/code/train.py'
-      - 'profit-predictor/pipeline.yaml'
-      - 'profit-predictor/train_regressor.yaml'
+      - 'profit-predictor/**'
 
 jobs:
   train-model:
-    runs-on: [self-hosted, windows]
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
@@ -44,35 +42,4 @@ jobs:
           $jobId = az ml job create --file profit-predictor/pipeline.yaml --query name -o tsv
           echo "JOB_ID=$jobId" >> $env:GITHUB_ENV
 
-      - name: Wait for job to complete
-        run: |
-          $jobId = $env:JOB_ID
-          do {
-            $status = az ml job show --name $jobId --query status -o tsv
-            Write-Output "Current status: $status"
-            Start-Sleep -Seconds 10
-          } while ($status -eq "Queued" -or $status -eq "NotStarted" -or $status -eq "Running")
-
-          if ($status -ne "Completed") {
-            Write-Error "Job failed with status: $status"
-            exit 1
-          }
-
-
-      - name: Remove old model from inference folder
-        run: |
-          if (Test-Path "inference/smurf-regressor") {
-            Remove-Item -Recurse -Force "inference/smurf-regressor"
-          }
-
-      - name: Download new trained model
-        shell: pwsh
-        run: |
-          $versionsJson = az ml model list --name smurf-regressor --query "[].version" -o json
-          $versions = ConvertFrom-Json $versionsJson
-
-          $latestVersion = ($versions | Sort-Object -Descending)[0]
-
-          az ml model download --name smurf-regressor --version $latestVersion --download-path ./inference/smurf-regressor
-
-
+     
